@@ -91,10 +91,21 @@ params = {
 
 704 首宋词原文，收录自历代古籍：全唐诗、全宋词、花间集、纳兰词等，涵盖唐、五代、北宋、南宋、金元、明、清各代词人作品。
 
-## 参考项目
+## 参考与致谢
 
-- [shouxieai/LSTM_poetry_generate](https://github.com/shouxieai/LSTM_poetry_generate)
-- [chinese-poetry/chinese-poetry](https://github.com/chinese-poetry/chinese-poetry)
+本项目在以下开源项目基础上完成：
+
+### [shouxieai/LSTM_poetry_generate](https://github.com/shouxieai/LSTM_poetry_generate)
+
+- 参考了其 LSTM 诗歌生成的核心思路与模型框架
+- 原项目使用 gensim Word2Vec 预训练词向量，本项目改用 PyTorch nn.Embedding 端到端训练，去除了 gensim 依赖
+- 新增了温度采样、Top-K 过滤、重复惩罚等生成策略，替代原项目的简单 argmax
+- 重新设计了词牌结构约束机制，强制句长匹配格律
+
+### [chinese-poetry/chinese-poetry](https://github.com/chinese-poetry/chinese-poetry)
+
+- 最全中华古诗词数据库，提供 2.1 万首宋词 JSON 数据
+- 本项目部分训练数据来源于此，经筛选整理为 5 种词牌共 704 首
 
 ## License
 
