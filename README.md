@@ -1,26 +1,32 @@
-# 宋词生成器 ·
+# 宋词生成器 · Song Ci Generator
 
 基于双层 LSTM 的多词牌宋词生成模型，支持 5 种经典词牌，可随机生成、指定词牌生成及藏头词创作。
 
 ## 项目简介
 
-本项目使用 PyTorch 实现了一个字符级 LSTM 语言模型，在 704 首历代宋词原文上训练，能够按照指定词牌的结构（句数、字数）自动生成符合格律的宋词。
+使用 PyTorch 实现字符级 LSTM 语言模型，在 704 首历代宋词原文上训练，能按照指定词牌的结构（句数、字数）自动生成符合格律的宋词。
 
 ## 支持词牌
 
 | 词牌 | 字数 | 结构 | 说明 |
 |------|:---:|------|------|
-| 浣溪沙 | 42 字 | 7/7/7 + 7/7/7 | 双调，上下阕各三句七言 |
-| 生查子 | 40 字 | 5×8 句 | 双调，上下阕各四句五言 |
-| 鹧鸪天 | 55 字 | 7/7/7/7 + 3/3/7/7/7 | 双调，含两个三字对句 |
-| 菩萨蛮 | 44 字 | 7/7/5/5 + 5/5/5/5 | 双调，句长交替 |
-| 蝶恋花 | 60 字 | 7/4/5/7/7 + 7/4/5/7/7 | 双调，结构较复杂 |
+| 浣溪沙 | 42 | 7/7/7 + 7/7/7 | 双调，上下阕各三句七言 |
+| 生查子 | 40 | 5×8 句 | 双调，上下阕各四句五言 |
+| 鹧鸪天 | 55 | 7/7/7/7 + 3/3/7/7/7 | 双调，含两个三字对句 |
+| 菩萨蛮 | 44 | 7/7/5/5 + 5/5/5/5 | 双调，句长交替 |
+| 蝶恋花 | 60 | 7/4/5/7/7 + 7/4/5/7/7 | 双调，结构较复杂 |
 
 ## 项目结构
-├── ci_generator.py # 核心代码：模型定义、训练、生成、交互菜单
-├── ci_data.txt # 训练数据：704 首宋词
-├── ci_model.pt # 预训练模型权重（可直接生成）
-└── output_final.txt # 生成示例输出
+
+```
+SongCi-Generator/
+│
+├── ci_generator.py      # 核心代码：模型定义、训练、生成、交互菜单
+├── ci_data.txt          # 训练数据：704 首宋词
+├── ci_model.pt          # 预训练模型权重（可直接生成）
+├── README.md            # 项目说明
+└── output_final.txt     # 生成示例输出
+```
 
 ## 快速开始
 
@@ -30,13 +36,13 @@
 - PyTorch >= 1.10
 - NumPy
 
-### 安装依赖
+### 安装
 
 ```bash
 pip install torch numpy
 ```
 
-### 直接使用（已训练模型）
+### 运行
 
 ```bash
 python ci_generator.py
@@ -52,63 +58,44 @@ python ci_generator.py
 0. 退出
 ```
 
-### 重新训练
+## 重新训练
+
+删除旧模型后运行程序将自动训练：
 
 ```bash
-# 删除旧模型
-rm ci_model.pt
-
-# 运行程序将自动训练
-python ci_generator.py
+rm ci_model.pt            # 或手动删除
+python ci_generator.py    # 自动检测并训练
 ```
 
 可在 `ci_generator.py` 的 `params` 字典中调整超参数：
 
 ```python
 params = {
-    "batch_size": 32,    # 批次大小
-    "epochs": 300,        # 训练轮数
-    "lr": 0.003,          # 学习率
-    "hidden_num": 128,    # LSTM 隐层大小
-    "embedding_num": 128, # 词向量维度
+    "batch_size": 32,
+    "epochs": 300,
+    "lr": 0.003,
+    "hidden_num": 128,
+    "embedding_num": 128,
 }
 ```
 
-## 模型架构
+## 技术细节
 
-- **嵌入层**：nn.Embedding，128 维
-- **循环层**：双层 LSTM，128 维隐层，Dropout 0.3
-- **输出层**：全连接层 → CrossEntropyLoss
-- **优化器**：AdamW
-- **采样策略**：温度缩放 + Top-K 过滤 + 重复惩罚 + 多项式采样
-- **生成约束**：句长强制匹配词牌结构，标点统一由代码添加
+**模型架构：** nn.Embedding(128维) → 双层 LSTM(128维, Dropout 0.3) → Linear → CrossEntropyLoss
+
+**生成策略：** 温度缩放 + Top-K 过滤 + 重复惩罚 + 多项式采样
+
+**结构约束：** 生成时屏蔽标点符号，按词牌句长强制断句，标点由程序统一添加
 
 ## 数据来源
 
-704 首训练数据收录自历代古籍原文：
-
-- 《全唐诗》《全宋词》《花间集》《纳兰词》
-- 涵盖唐、五代、北宋、南宋、金元、明、清各代
-- 每首标注词牌名，按 `词牌名：正文` 格式存储
-
-## 生成示例
-
-```
-浣溪沙
-【上阕】
-  照日深红暖见鱼，连溪绿暗晚藏乌，黄童白叟聚睢盱。
-【下阕】
-  麋鹿逢人虽未惯，猿猱闻鼓不须呼，归来说与采桑姑。
-```
-
-> 注：由于训练数据量有限（704 首），生成质量与原作仍有差距。
-> 扩充 `ci_data.txt` 至千首以上可明显改善生成效果。
-
-## License
-
-MIT License
+704 首宋词原文，收录自历代古籍：全唐诗、全宋词、花间集、纳兰词等，涵盖唐、五代、北宋、南宋、金元、明、清各代词人作品。
 
 ## 参考项目
 
 - [shouxieai/LSTM_poetry_generate](https://github.com/shouxieai/LSTM_poetry_generate)
-- [chinese-poetry/chinese-poetry](https://github.com/chinese-poetry/chinese-poetry) — 最全中华古诗词数据库
+- [chinese-poetry/chinese-poetry](https://github.com/chinese-poetry/chinese-poetry)
+
+## License
+
+MIT
